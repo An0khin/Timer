@@ -6,21 +6,29 @@ import javax.swing.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class TimerController {
     private static final String ACTIVE_TIME_STRING = "Active time: ";
     private static final String ALL_TIME_STRING = "All time: ";
     private static final String RED_BUTTON_PATH = "src/main/resources/buttonred.png";
     private static final String GREEN_BUTTON_PATH = "src/main/resources/buttongreen.png";
+    private static final String DATES_DEFAULT_PATH = "src/main/resources/Times.dat";
+    private String datesPath;
     private final TimerView timerView;
-    private HashMap<String, List<String>> tasksMap;
-    private String listSelectedValue = null;
+    public Map<String, List<String>> tasksMap;
+    public String listSelectedValue = null;
     private boolean isTimerTurnedOn = false;
+
+    public TimerController(String path) {
+        timerView = null;
+        this.datesPath = path;
+    }
 
     public TimerController(TimerView timerView) {
         this.timerView = timerView;
+        this.datesPath = DATES_DEFAULT_PATH;
 
         setTasks();
         setListeners();
@@ -28,12 +36,16 @@ public class TimerController {
     }
 
     private void setTasks() {
-        tasksMap = TimesWorker.readDates();
+        tasksMap = TimesWorker.readDates(datesPath);
 
         timerView.getListTasks().setListData(tasksMap.keySet().toArray(new String[0]));
     }
 
     private void updateListData() {
+        if(timerView == null) {
+            return;
+        }
+
         timerView.getListTasks().setListData(tasksMap.keySet().toArray(new String[0]));
     }
 
@@ -60,6 +72,10 @@ public class TimerController {
     }
 
     private void setIcon() {
+        if(timerView == null) {
+            return;
+        }
+
         JButton startTimerButton = timerView.getStartTimerButton();
         if(isTimerTurnedOn) {
             startTimerButton.setIcon(new ImageIcon(GREEN_BUTTON_PATH));
@@ -90,7 +106,7 @@ public class TimerController {
         clickTimerButton.addActionListener(event -> clickTimer());
     }
 
-    private void clickTimer() {
+    public void clickTimer() {
         List<String> tempList = new ArrayList<>(tasksMap.get(listSelectedValue));
         tempList.add(LocalDateTime.now().toString());
         tasksMap.replace(listSelectedValue, tempList);
@@ -108,6 +124,10 @@ public class TimerController {
     private void createTask() {
         String name = JOptionPane.showInputDialog("Write a name of the task"); //creating dialog with user
 
+        createTaskWithName(name);
+    }
+
+    public void createTaskWithName(String name) {
         if(name != null && !name.equals("")) {
             tasksMap.put(name, new ArrayList<>());
             updateListData();
@@ -120,7 +140,7 @@ public class TimerController {
         deleteTaskButton.addActionListener(e -> deleteTask());
     }
 
-    private void deleteTask() {
+    public void deleteTask() {
         tasksMap.remove(listSelectedValue);
         updateListData();
         saveTasks();
@@ -131,7 +151,7 @@ public class TimerController {
         deleteLastTimeButton.addActionListener(e -> deleteLastTime());
     }
 
-    private void deleteLastTime() {
+    public void deleteLastTime() {
         List<String> tempList = new ArrayList<>(tasksMap.get(listSelectedValue));
         if(tempList.isEmpty()) {
             return;
@@ -143,7 +163,7 @@ public class TimerController {
     }
 
     private void saveTasks() {
-        TimesWorker.saveFile(tasksMap);
+        TimesWorker.saveFile(tasksMap, datesPath);
     }
 
     private void setRealTimeRenderer() {
@@ -191,7 +211,7 @@ public class TimerController {
         allTimeLabel.setText(ALL_TIME_STRING + durationToString(allTime));
     }
 
-    private String durationToString(Duration time) {
+    public String durationToString(Duration time) {
         String stringTime = time.toString();
         stringTime = stringTime.substring(2, stringTime.length() - 1);
 

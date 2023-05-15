@@ -7,12 +7,10 @@ import java.io.IOException;
 import java.util.*;
 
 public class TimesWorker {
-    private static final String datesPath = "src/main/resources/Times.dat";
-
-    public static HashMap<String, List<String>> readDates() {
+    public static HashMap<String, List<String>> readDates(String path) {
         HashMap<String, List<String>> datesMap = new HashMap<>();
 
-        Optional<FileReader> optionalFileReader = openFile();
+        Optional<FileReader> optionalFileReader = openFile(path);
 
         if(optionalFileReader.isEmpty()) {
             return datesMap;
@@ -33,8 +31,8 @@ public class TimesWorker {
         return datesMap;
     }
 
-    public static void saveFile(Map<String, List<String>> timesMap) {
-        try(BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(datesPath))) {
+    public static void saveFile(Map<String, List<String>> timesMap, String path) {
+        try(BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(path))) {
 
             for(String key : timesMap.keySet()) {
                 String line = createLine(key, timesMap);
@@ -47,9 +45,9 @@ public class TimesWorker {
         }
     }
 
-    public static Optional<FileReader> openFile() {
+    public static Optional<FileReader> openFile(String path) {
         try {
-            return Optional.of(new FileReader(datesPath));
+            return Optional.of(new FileReader(path));
         } catch(IOException e) {
             e.printStackTrace();
         }
